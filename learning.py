@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import random
+import time
 
 # test_id = test["id"]
 # train_id = train["id"]
@@ -36,21 +37,21 @@ import random
 
 
 # Function knn should be reviewed again!!!
-def knn(k, lt, rt, lv, rv, train, v):
+def knn(k, lv, rv, train):
     result_y = []
     for i in range(lv, rv, 1):
         result = []
-        for j in range(lt, rt, 1):
-            sum = np.sqrt(((train["x1"][i] - train["x1"][j]) ** 2) + ((train["x2"]
-                          [i] - train["x2"][j]) ** 2) + ((train["x3"][i] - train["x3"][j]) ** 2))
-            result.append(sum)
+        for j in range(296):
+            if j >= lv and j < rv:  # for i in range(number of data)
+                result.append(np.inf)
+            else:
+                sum = np.sqrt(((train["x1"][i] - train["x1"][j]) ** 2) + ((train["x2"]
+                                                                           [i] - train["x2"][j]) ** 2) + ((train["x3"][i] - train["x3"][j]) ** 2))
+                result.append(sum)
         nearest = []
         for i in range(k):
             idx = result.index(min(result))
-            if v == "v1":
-                select = train.loc[idx+lt]
-            elif v == "v2":
-                select = train.loc[idx+rt]
+            select = train.loc[idx]
             nearest.append(select["y"])
             result[idx] = np.inf
         if nearest.count(1) > nearest.count(0):
@@ -69,63 +70,20 @@ def validation(k, train):
     fp = 0
     fn = 0
     for i in range(1, 9, 1):
-        if i == 1:
-            lt = 37
-            rt = 296
-            lv = 0
-            rv = 37
-            result_y = knn(k, lt, rt, lv, rv, train, "v1")
-            for j in range(len(result_y)):
-                if result_y[j] == 1:
-                    if train["y"][j] == 1:
-                        tp += 1
-                    else:
-                        fp += 1
-                elif result_y[j] == 0:
-                    if train["y"][j] == 0:
-                        tn += 1
-                    else:
-                        fn += 1
-        elif i == 8:
-            lt = 0
-            rt = 259
-            lv = rt
-            rv = 296
-            result_y = knn(k, lt, rt, lv, rv, train, "v2")
-            for j in range(len(result_y)):
-                if result_y[j] == 1:
-                    if train["y"][j+rt] == 1:
-                        tp += 1
-                    else:
-                        fp += 1
-                elif result_y[j] == 0:
-                    if train["y"][j+rt] == 0:
-                        tn += 1
-                    else:
-                        fn += 1
-        else:
-            lt = 0
-            rt = (296*(i-1))//8
-            lv = rt
-            rv = (296*(i))//8
-            result_y0 = knn(k, lt, rt, lv, rv, train, "v2")
-            lt = (296*(i))//8
-            rt = 296
-            lv = (296*(i-1))//8
-            rv = (296*(i))//8
-            result_y1 = knn(k, lt, rt, lv, rv, train, "v1")
-            result_y = result_y0 + result_y1
-            for j in range(len(result_y)):
-                if result_y[j] == 1:
-                    if train["y"][j+lv] == 1:
-                        tp += 1
-                    else:
-                        fp += 1
-                elif result_y[j] == 0:
-                    if train["y"][j+lv] == 0:
-                        tn += 1
-                    else:
-                        fn += 1
+        lv = (296*(i-1))//8
+        rv = (296*(i))//8
+        result_y = knn(k, lv, rv, train)
+        for j in range(len(result_y)):
+            if result_y[j] == 1:
+                if train["y"][j+lv] == 1:
+                    tp += 1
+                else:
+                    fp += 1
+            elif result_y[j] == 0:
+                if train["y"][j+lv] == 0:
+                    tn += 1
+                else:
+                    fn += 1
     confusion_matrix = {"tp": tp, "tn": tn, "fp": fp, "fn": fn}
     return confusion_matrix
 
@@ -143,27 +101,25 @@ def performance(conf):
     return perf_metrics
 
 
-# result_test = knn(1, 37, 296, 0, 37, train, "v1")
-# print(result_test)
-# print(len(result_test))
-# lt = 37
-# rt = 296
-# lv = 0
-# rv = 37
-
 if __name__ == "__main__":
+    st = time.time()
     # Use your own path file
     train = pd.read_excel(
-        r'C:\Users\user\Documents\Folder Tugas Rifqi\Semester 4\Pengantar Kecerdasan Buatan\Learning Programming Assignment\traintest.xlsx', sheet_name="train")
+        r'C:\Users\rifqi\OneDrive\Documents\Folder Tugas Iqi\Semester 4\Pengantar Kecerdasan Buatan\Learning Programming Assignment\traintest.xlsx', sheet_name="train")
 
     test = pd.read_excel(
-        r'C:\Users\user\Documents\Folder Tugas Rifqi\Semester 4\Pengantar Kecerdasan Buatan\Learning Programming Assignment\traintest.xlsx', sheet_name="test")
+        r'C:\Users\rifqi\OneDrive\Documents\Folder Tugas Iqi\Semester 4\Pengantar Kecerdasan Buatan\Learning Programming Assignment\traintest.xlsx', sheet_name="test")
+
     accuracy = []
     f1_score = []
-    for i in range(1, 38, 1):
+    for i in range(1, 3, 1):
         conf_matrix = validation(i, train)
         perf = performance(conf_matrix)
         accuracy.append(perf["acc"])
         f1_score.append(perf["f1_score"])
     print(accuracy)
     print(f1_score)
+
+    et = time.time()
+    elapsed = et - st
+    print("Elapsed time :", elapsed)
