@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import math
+import matplotlib.pyplot as plt
 import random
 import time
 
@@ -45,8 +47,8 @@ def knn(k, lv, rv, train):
             if j >= lv and j < rv:  # for i in range(number of data)
                 result.append(np.inf)
             else:
-                sum = np.sqrt(((train["x1"][i] - train["x1"][j]) ** 2) + ((train["x2"]
-                                                                           [i] - train["x2"][j]) ** 2) + ((train["x3"][i] - train["x3"][j]) ** 2))
+                sum = math.sqrt(((train["x1"][i] - train["x1"][j]) ** 2) + ((train["x2"]
+                                                                             [i] - train["x2"][j]) ** 2) + ((train["x3"][i] - train["x3"][j]) ** 2))
                 result.append(sum)
         nearest = []
         for i in range(k):
@@ -64,12 +66,27 @@ def knn(k, lv, rv, train):
     return result_y
 
 
+def performance(conf):
+    acc = (conf["tp"] + conf["tn"]) / \
+        (conf["tp"] + conf["tn"] + conf["fp"] + conf["fn"])
+    recall = conf["tp"] / (conf["tp"] + conf["fn"])
+    specificity = conf["tn"] / (conf["tn"] + conf["fp"])
+    precision = conf["tp"] / (conf["tp"] + conf["fp"])
+    f1_score = (2 * precision * recall) / (precision + recall)
+    perf_metrics = {"acc": acc,
+                    "specificity": specificity, "f1_score": f1_score}
+
+    return perf_metrics
+
+
 def validation(k, train):
-    tp = 0
-    tn = 0
-    fp = 0
-    fn = 0
+    result_avg = []
+    result_f1 = []
     for i in range(1, 9, 1):
+        tp = 0
+        tn = 0
+        fp = 0
+        fn = 0
         lv = (296*(i-1))//8
         rv = (296*(i))//8
         result_y = knn(k, lv, rv, train)
@@ -84,21 +101,15 @@ def validation(k, train):
                     tn += 1
                 else:
                     fn += 1
-    confusion_matrix = {"tp": tp, "tn": tn, "fp": fp, "fn": fn}
-    return confusion_matrix
+        confusion_matrix = {"tp": tp, "tn": tn, "fp": fp, "fn": fn}
+        perf = performance(confusion_matrix)
+        result_avg.append(perf["acc"])
+        result_f1.append(perf["f1_score"])
 
+    result = {"acc": np.mean(np.array(result_avg)),
+              "f1_score": np.mean(np.array(result_f1))}
 
-def performance(conf):
-    acc = (conf["tp"] + conf["tn"]) / \
-        (conf["tp"] + conf["tn"] + conf["fp"] + conf["fn"])
-    recall = conf["tp"] / (conf["tp"] + conf["fn"])
-    specificity = conf["tn"] / (conf["tn"] + conf["fp"])
-    precision = conf["tp"] / (conf["tp"] + conf["fp"])
-    f1_score = (2 * precision * recall) / (precision + recall)
-    perf_metrics = {"acc": acc,
-                    "specificity": specificity, "f1_score": f1_score}
-
-    return perf_metrics
+    return result
 
 
 if __name__ == "__main__":
@@ -110,16 +121,17 @@ if __name__ == "__main__":
     test = pd.read_excel(
         r'C:\Users\rifqi\OneDrive\Documents\Folder Tugas Iqi\Semester 4\Pengantar Kecerdasan Buatan\Learning Programming Assignment\traintest.xlsx', sheet_name="test")
 
-    accuracy = []
-    f1_score = []
-    for i in range(1, 3, 1):
-        conf_matrix = validation(i, train)
-        perf = performance(conf_matrix)
-        accuracy.append(perf["acc"])
-        f1_score.append(perf["f1_score"])
-    print(accuracy)
-    print(f1_score)
-
+    plots = []
+    for i in range(1, 51, 1):
+        result = validation(i, train)
+        print("K =", i)
+        print("Accuracy :", result["acc"])
+        plots.append(result["acc"])
+    print()
     et = time.time()
     elapsed = et - st
     print("Elapsed time :", elapsed)
+
+    plt.plot(plots)
+    plt.ylabel("Accuracy")
+    plt.show()
