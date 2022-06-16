@@ -5,18 +5,6 @@ import matplotlib.pyplot as plt
 import random
 import time
 
-# test_id = test["id"]
-# train_id = train["id"]
-
-# test_x1 = test["x1"]
-# test_x2 = test["x2"]
-# test_x3 = test["x3"]
-
-# train_x1 = train["x1"]
-# train_x2 = train["x2"]
-# train_x3 = train["x3"]
-# train_y = train["y"]
-
 # result_y = []
 # for i in range(len(test_id)):
 #     result = []
@@ -26,16 +14,6 @@ import time
 #         result.append(sum)
 #     res = result.index(min(result))
 #     result_y.append(train["y"][res+1])
-
-# print(result_y)
-
-# l = train.iloc[0:10]
-# ll = l.loc[0]
-# print(train.loc[295])
-# print("y =", train["y"][0])
-# print(ll)
-# print(ll["x1"])
-# print(l.loc[10])
 
 
 # Function knn should be reviewed again!!!
@@ -120,6 +98,9 @@ if __name__ == "__main__":
 
     test = pd.read_excel(
         r'C:\Users\rifqi\OneDrive\Documents\Folder Tugas Iqi\Semester 4\Pengantar Kecerdasan Buatan\Learning Programming Assignment\traintest.xlsx', sheet_name="test")
+
+    x = train.iloc[:, 1:4]
+    train.iloc[:, 1:4] = (x-x.min()) / (x.max() - x.min())
 
     plots = []
     for i in range(1, 51, 1):
